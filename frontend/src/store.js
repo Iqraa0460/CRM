@@ -50,6 +50,7 @@ export const sendChatMessage = createAsyncThunk(
       const payload = {
         message,
         current_state: {
+          interaction_id: currentForm.interactionId || null,
           hcp_name: currentForm.hcpName,
           hcp_id: currentForm.hcpId,
           type: currentForm.type,
@@ -129,6 +130,7 @@ export const submitFormInteraction = createAsyncThunk(
 );
 
 const initialFormState = {
+  interactionId: null,
   hcpName: '',
   hcpId: null,
   type: 'Meeting',
@@ -339,12 +341,8 @@ const crmSlice = createSlice({
         }
 
         if (data.logged) {
-          state.currentForm = {
-            ...initialFormState,
-            date: new Date().toISOString().split('T')[0],
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
-          };
-          state.suggestions = [];
+          // Keep form populated so user can review and issue corrections
+          state.currentForm.interactionId = data.logged_id;
           state.submitSuccess = true;
         }
       })

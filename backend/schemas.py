@@ -71,6 +71,7 @@ class InteractionResponse(BaseModel):
 
 # Chat Schemas
 class InteractionFormState(BaseModel):
+    interaction_id: Optional[int] = None
     hcp_name: Optional[str] = None
     hcp_id: Optional[int] = None
     type: Optional[str] = "Meeting"

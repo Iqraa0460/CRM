@@ -203,12 +203,8 @@ function App() {
                     type="text" 
                     placeholder="Search or select HCP..."
                     value={hcpSearch || currentForm.hcpName}
-                    onChange={(e) => {
-                      setHcpSearch(e.target.value);
-                      handleFormChange('hcpName', e.target.value);
-                      setShowHcpDropdown(true);
-                    }}
-                    onFocus={() => setShowHcpDropdown(true)}
+                    readOnly
+                    disabled
                   />
                 </div>
                 {showHcpDropdown && hcpSearch && (
@@ -236,7 +232,7 @@ function App() {
                 <label>Interaction Type</label>
                 <select 
                   value={currentForm.type} 
-                  onChange={(e) => handleFormChange('type', e.target.value)}
+                  disabled
                 >
                   <option value="Meeting">Meeting</option>
                   <option value="Call">Call</option>
@@ -253,7 +249,8 @@ function App() {
                   <input 
                     type="date" 
                     value={currentForm.date} 
-                    onChange={(e) => handleFormChange('date', e.target.value)}
+                    readOnly
+                    disabled
                   />
                 </div>
               </div>
@@ -267,7 +264,8 @@ function App() {
                     type="text" 
                     placeholder="19:36"
                     value={currentForm.time} 
-                    onChange={(e) => handleFormChange('time', e.target.value)}
+                    readOnly
+                    disabled
                   />
                 </div>
               </div>
@@ -279,8 +277,8 @@ function App() {
                   type="text" 
                   placeholder="Enter names and press Enter..." 
                   value={attendeeInput}
-                  onChange={(e) => setAttendeeInput(e.target.value)}
-                  onKeyDown={handleAddAttendee}
+                  readOnly
+                  disabled
                 />
                 {currentForm.attendees.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
@@ -306,7 +304,8 @@ function App() {
                 <textarea 
                   placeholder="Enter key discussion points..."
                   value={currentForm.topicsDiscussed}
-                  onChange={(e) => handleFormChange('topicsDiscussed', e.target.value)}
+                  readOnly
+                  disabled
                 />
                 
                 {/* Voice Note Summarizer */}
@@ -332,11 +331,8 @@ function App() {
                       type="text" 
                       placeholder="Search/Add clinical brochures..."
                       value={materialSearch}
-                      onChange={(e) => {
-                        setMaterialSearch(e.target.value);
-                        setShowMaterialDropdown(true);
-                      }}
-                      onFocus={() => setShowMaterialDropdown(true)}
+                      readOnly
+                      disabled
                     />
                   </div>
                   {showMaterialDropdown && materialSearch && (
@@ -388,11 +384,11 @@ function App() {
                   <select 
                     style={{ flexGrow: 1 }}
                     value={sampleSelectId} 
-                    onChange={(e) => setSampleSelectId(e.target.value)}
+                    disabled
                   >
                     <option value="">Select Drug Sample...</option>
                     {samplesCatalog.map(s => (
-                      <option key={s.id} value={s.id} disabled={currentForm.samples.some(added => added.id === s.id)}>
+                      <option key={s.id} value={s.id}>
                         {s.name} (Stock: {s.stock})
                       </option>
                     ))}
@@ -402,13 +398,12 @@ function App() {
                     className="qty-input"
                     value={sampleSelectQty} 
                     min="1"
-                    onChange={(e) => setSampleSelectQty(parseInt(e.target.value) || 1)}
+                    disabled
                   />
                   <button 
                     type="button" 
                     className="btn-secondary" 
-                    onClick={handleAddSample}
-                    disabled={!sampleSelectId}
+                    disabled
                   >
                     <Plus className="w-4 h-4" /> Add
                   </button>
@@ -460,7 +455,7 @@ function App() {
                       key={item.val}
                       type="button"
                       className={`sentiment-btn ${currentForm.observedSentiment === item.val ? `active ${item.class}` : ''}`}
-                      onClick={() => handleFormChange('observedSentiment', item.val)}
+                      disabled
                     >
                       <span className="emoji">{item.emoji}</span>
                       <span className="label">{item.val}</span>
@@ -475,7 +470,8 @@ function App() {
                 <textarea 
                   placeholder="Key outcomes or agreements..."
                   value={currentForm.outcomes}
-                  onChange={(e) => handleFormChange('outcomes', e.target.value)}
+                  readOnly
+                  disabled
                 />
               </div>
 
@@ -485,7 +481,8 @@ function App() {
                 <textarea 
                   placeholder="Enter next steps or tasks..."
                   value={currentForm.followUpActions}
-                  onChange={(e) => handleFormChange('followUpActions', e.target.value)}
+                  readOnly
+                  disabled
                 />
               </div>
 

@@ -1,10 +1,7 @@
 import json
 from datetime import datetime
 from sqlalchemy.orm import Session
-from database import SessionLocal, HCP, Material, Sample, Interaction, InteractionSample, SuggestedFollowUp, init_db
-
-# Ensure DB is initialized
-init_db()
+from database import SessionLocal, HCP, Material, Sample, Interaction, InteractionSample, SuggestedFollowUp
 
 def search_hcp(query: str) -> str:
     """
@@ -108,8 +105,12 @@ def log_interaction(
     """
     db = SessionLocal()
     try:
-        # 1. Resolve HCP
+        # 1. Resolve HCP — create dynamically if not found
         hcp = db.query(HCP).filter(HCP.name.ilike(f"%{hcp_name}%")).first()
+        if not hcp and hcp_name and hcp_name.strip() and len(hcp_name.strip()) > 2 and hcp_name.lower() != "unknown hcp":
+            hcp = HCP(name=hcp_name.strip(), specialty="General")
+            db.add(hcp)
+            db.flush()
         hcp_id = hcp.id if hcp else None
         
         # 2. Format Date/Time if not provided
