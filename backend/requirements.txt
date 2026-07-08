@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic>=2.12.0
+langgraph
+langchain-core
+langchain-groq
+python-dotenv
+pytest
