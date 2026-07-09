@@ -2,7 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   Users, MessageSquare, Calendar, Clock, Smile, FileText, CheckCircle, 
-  Send, RotateCcw, Trash2, Plus, Sparkles, Mic, Search, AlertCircle
+  Send, RotateCcw, Trash2, Plus, Sparkles, Mic, Search, AlertCircle,
+  Sun, Moon
 } from 'lucide-react';
 import { 
   fetchMetadata, fetchInteractions, setFormValue, addAttendee, removeAttendee,
@@ -13,6 +14,25 @@ import {
 
 function App() {
   const dispatch = useDispatch();
+  
+  // Theme state (default to Light / White Theme)
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('crm-theme') || 'light';
+  });
+
+  // Manual editing mode state (defaults to true)
+  const [isManualMode, setIsManualMode] = useState(true);
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('crm-theme', theme);
+  }, [theme]);
   
   // Redux State selectors
   const { 
@@ -162,13 +182,57 @@ function App() {
       <header className="app-header">
         <div className="header-title-group">
           <h1>
-            <Sparkles className="w-6 h-6 text-indigo-400" />
+            <Sparkles className="w-6 h-6" style={{ color: 'var(--accent-color)' }} />
             AI-First CRM
           </h1>
           <p>Healthcare Professional (HCP) Interaction Portal</p>
         </div>
-        <div className="rep-badge">
-          Field Rep Mode
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button 
+            type="button"
+            onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+            className="theme-toggle-btn"
+            title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+            style={{
+              background: 'none',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              borderRadius: '8px',
+              padding: '6px 10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+          </button>
+          <button 
+            type="button"
+            onClick={() => setIsManualMode(prev => !prev)}
+            className="theme-toggle-btn"
+            title={isManualMode ? "Switch to AI Assist Mode" : "Switch to Manual Form Mode"}
+            style={{
+              background: 'none',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              borderRadius: '8px',
+              padding: '6px 12px',
+              fontSize: '13px',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {isManualMode ? '📝 Manual Form Mode' : '🤖 AI Assist Mode'}
+          </button>
+          <div className="rep-badge">
+            Field Rep Mode
+          </div>
         </div>
       </header>
 
@@ -203,11 +267,16 @@ function App() {
                     type="text" 
                     placeholder="Search or select HCP..."
                     value={hcpSearch || currentForm.hcpName}
-                    readOnly
-                    disabled
+                    onChange={(e) => {
+                      setHcpSearch(e.target.value);
+                      setShowHcpDropdown(true);
+                    }}
+                    onFocus={() => setShowHcpDropdown(true)}
+                    readOnly={!isManualMode}
+                    disabled={!isManualMode}
                   />
                 </div>
-                {showHcpDropdown && hcpSearch && (
+                {showHcpDropdown && (
                   <div className="search-results-dropdown">
                     {filteredHcps.length > 0 ? (
                       filteredHcps.map(h => (
@@ -232,7 +301,8 @@ function App() {
                 <label>Interaction Type</label>
                 <select 
                   value={currentForm.type} 
-                  disabled
+                  onChange={(e) => handleFormChange('type', e.target.value)}
+                  disabled={!isManualMode}
                 >
                   <option value="Meeting">Meeting</option>
                   <option value="Call">Call</option>
@@ -249,8 +319,9 @@ function App() {
                   <input 
                     type="date" 
                     value={currentForm.date} 
-                    readOnly
-                    disabled
+                    onChange={(e) => handleFormChange('date', e.target.value)}
+                    readOnly={!isManualMode}
+                    disabled={!isManualMode}
                   />
                 </div>
               </div>
@@ -264,8 +335,9 @@ function App() {
                     type="text" 
                     placeholder="19:36"
                     value={currentForm.time} 
-                    readOnly
-                    disabled
+                    onChange={(e) => handleFormChange('time', e.target.value)}
+                    readOnly={!isManualMode}
+                    disabled={!isManualMode}
                   />
                 </div>
               </div>
@@ -277,8 +349,10 @@ function App() {
                   type="text" 
                   placeholder="Enter names and press Enter..." 
                   value={attendeeInput}
-                  readOnly
-                  disabled
+                  onChange={(e) => setAttendeeInput(e.target.value)}
+                  onKeyDown={handleAddAttendee}
+                  readOnly={!isManualMode}
+                  disabled={!isManualMode}
                 />
                 {currentForm.attendees.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
@@ -304,8 +378,9 @@ function App() {
                 <textarea 
                   placeholder="Enter key discussion points..."
                   value={currentForm.topicsDiscussed}
-                  readOnly
-                  disabled
+                  onChange={(e) => handleFormChange('topicsDiscussed', e.target.value)}
+                  readOnly={!isManualMode}
+                  disabled={!isManualMode}
                 />
                 
                 {/* Voice Note Summarizer */}
@@ -331,11 +406,16 @@ function App() {
                       type="text" 
                       placeholder="Search/Add clinical brochures..."
                       value={materialSearch}
-                      readOnly
-                      disabled
+                      onChange={(e) => {
+                        setMaterialSearch(e.target.value);
+                        setShowMaterialDropdown(true);
+                      }}
+                      onFocus={() => setShowMaterialDropdown(true)}
+                      readOnly={!isManualMode}
+                      disabled={!isManualMode}
                     />
                   </div>
-                  {showMaterialDropdown && materialSearch && (
+                  {showMaterialDropdown && (
                     <div className="search-results-dropdown">
                       {filteredMaterials.length > 0 ? (
                         filteredMaterials.map(m => (
@@ -384,7 +464,8 @@ function App() {
                   <select 
                     style={{ flexGrow: 1 }}
                     value={sampleSelectId} 
-                    disabled
+                    onChange={(e) => setSampleSelectId(e.target.value)}
+                    disabled={!isManualMode}
                   >
                     <option value="">Select Drug Sample...</option>
                     {samplesCatalog.map(s => (
@@ -397,13 +478,15 @@ function App() {
                     type="number" 
                     className="qty-input"
                     value={sampleSelectQty} 
+                    onChange={(e) => setSampleSelectQty(parseInt(e.target.value) || 1)}
                     min="1"
-                    disabled
+                    disabled={!isManualMode}
                   />
                   <button 
                     type="button" 
                     className="btn-secondary" 
-                    disabled
+                    onClick={handleAddSample}
+                    disabled={!isManualMode || !sampleSelectId}
                   >
                     <Plus className="w-4 h-4" /> Add
                   </button>
@@ -455,7 +538,8 @@ function App() {
                       key={item.val}
                       type="button"
                       className={`sentiment-btn ${currentForm.observedSentiment === item.val ? `active ${item.class}` : ''}`}
-                      disabled
+                      onClick={() => isManualMode && handleFormChange('observedSentiment', item.val)}
+                      style={{ cursor: isManualMode ? 'pointer' : 'default' }}
                     >
                       <span className="emoji">{item.emoji}</span>
                       <span className="label">{item.val}</span>
@@ -470,8 +554,9 @@ function App() {
                 <textarea 
                   placeholder="Key outcomes or agreements..."
                   value={currentForm.outcomes}
-                  readOnly
-                  disabled
+                  onChange={(e) => handleFormChange('outcomes', e.target.value)}
+                  readOnly={!isManualMode}
+                  disabled={!isManualMode}
                 />
               </div>
 
@@ -481,8 +566,9 @@ function App() {
                 <textarea 
                   placeholder="Enter next steps or tasks..."
                   value={currentForm.followUpActions}
-                  readOnly
-                  disabled
+                  onChange={(e) => handleFormChange('followUpActions', e.target.value)}
+                  readOnly={!isManualMode}
+                  disabled={!isManualMode}
                 />
               </div>
 
@@ -567,13 +653,22 @@ function App() {
 
               {/* Chat Input form */}
               <form className="chat-input-form" onSubmit={handleChatSubmit}>
-                <input 
-                  type="text" 
+                <textarea 
                   className="chat-input"
                   placeholder="Describe interaction..."
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      if (chatInput.trim() && !chatLoading) {
+                        handleChatSubmit(e);
+                      }
+                    }
+                  }}
                   disabled={chatLoading}
+                  rows={2}
+                  style={{ resize: 'none', minHeight: '50px', padding: '10px 12px' }}
                 />
                 <button 
                   type="submit" 

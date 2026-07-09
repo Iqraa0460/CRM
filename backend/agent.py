@@ -390,12 +390,33 @@ def extractor_node(state: AgentState) -> dict:
                         updated_state["interaction_id"] = logged_id
                         if result_data.get("hcp_resolved"):
                             updated_state["hcp_name"] = result_data["hcp_resolved"]
+                        if tool_args.get("interaction_type"):
+                            updated_state["type"] = tool_args["interaction_type"]
+                        if tool_args.get("date"):
+                            updated_state["date"] = tool_args["date"]
+                        if tool_args.get("time"):
+                            updated_state["time"] = tool_args["time"]
+                        if tool_args.get("attendees") is not None:
+                            updated_state["attendees"] = tool_args["attendees"]
+                        if tool_args.get("topics_discussed"):
+                            updated_state["topics_discussed"] = tool_args["topics_concerned"] if "topics_concerned" in tool_args else tool_args["topics_discussed"]
+                        if tool_args.get("outcomes"):
+                            updated_state["outcomes"] = tool_args["outcomes"]
+                        if tool_args.get("follow_up_actions"):
+                            updated_state["follow_up_actions"] = tool_args["follow_up_actions"]
+                        if tool_args.get("observed_sentiment"):
+                            updated_state["observed_sentiment"] = tool_args["observed_sentiment"]
+                        if tool_args.get("materials_shared") is not None:
+                            updated_state["materials"] = tool_args["materials_shared"]
+                        if tool_args.get("samples_distributed") is not None:
+                            updated_state["samples"] = tool_args["samples_distributed"]
                         if result_data.get("suggestions"):
                             suggestions = result_data["suggestions"]
 
                 # Handle edit_interaction result
                 if tool_name == "edit_interaction" and isinstance(result_data, dict):
                     if result_data.get("status") == "success":
+                        logged = True
                         # Apply the updates from the tool_args to form_state
                         edits = tool_args.get("updates", {})
                         for k, v in edits.items():
@@ -484,24 +505,28 @@ def _fallback_extraction(state: AgentState) -> dict:
     )
 
     if is_log_command:
-        hcp_name = form_state.get("hcp_name") or "Unknown HCP"
+        # First extract any details from this final message
+        extracted_temp, _ = mock_extract_entities(message, form_state)
+        for k, v in extracted_temp.items():
+            if v:  # Only override if we found something new in this final message
+                updated_state[k] = v
+
+        hcp_name = updated_state.get("hcp_name") or "Unknown HCP"
         if not hcp_name or hcp_name == "Unknown HCP":
-            mock_temp, _ = mock_extract_entities(message, form_state)
-            hcp_name = mock_temp.get("hcp_name") or "Unknown HCP"
-            updated_state["hcp_name"] = hcp_name
+            hcp_name = "Unknown HCP"
 
         res_str = _log_interaction_fn(
             hcp_name=hcp_name,
-            interaction_type=form_state.get("type", "Meeting"),
-            date=form_state.get("date"),
-            time=form_state.get("time"),
-            attendees=form_state.get("attendees", []),
-            topics_discussed=form_state.get("topics_discussed", ""),
-            outcomes=form_state.get("outcomes", ""),
-            follow_up_actions=form_state.get("follow_up_actions", ""),
-            observed_sentiment=form_state.get("observed_sentiment", "Neutral"),
-            materials_shared=form_state.get("materials", []),
-            samples_distributed=form_state.get("samples", []),
+            interaction_type=updated_state.get("type", "Meeting"),
+            date=updated_state.get("date"),
+            time=updated_state.get("time"),
+            attendees=updated_state.get("attendees", []),
+            topics_discussed=updated_state.get("topics_discussed", ""),
+            outcomes=updated_state.get("outcomes", ""),
+            follow_up_actions=updated_state.get("follow_up_actions", ""),
+            observed_sentiment=updated_state.get("observed_sentiment", "Neutral"),
+            materials_shared=updated_state.get("materials", []),
+            samples_distributed=updated_state.get("samples", []),
         )
 
         try:
@@ -535,6 +560,10 @@ def _fallback_extraction(state: AgentState) -> dict:
         try:
             res = json.loads(res_str)
             if res.get("status") == "success":
+                logged = True
+                for k, v in updates_payload.items():
+                    if k in updated_state:
+                        updated_state[k] = v
                 reply = f"Successfully updated Interaction ID {int_id} with the latest information."
             else:
                 reply = f"Failed to edit interaction: {res.get('message')}"
