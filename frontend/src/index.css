@@ -68,7 +68,7 @@ body {
   max-width: 1440px;
   margin: 0 auto;
   padding: 24px;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -115,8 +115,8 @@ body {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
   gap: 24px;
-  flex-grow: 1;
-  min-height: 0; /* Important for nested scrollable columns */
+  height: 680px;
+  flex-shrink: 0;
 }
 
 /* Columns */
