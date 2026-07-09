@@ -82,7 +82,7 @@ def generate_followups(topics_discussed: str, outcomes: str) -> str:
     suggestions.append("Schedule follow-up meeting in 2 weeks")
     suggestions.append("Log call outcomes in CRM portal")
     
-    return json.dumps(list(set(suggestions))[:3], indent=2)
+    return json.dumps(list(dict.fromkeys(suggestions))[:3], indent=2)
 
 def log_interaction(
     hcp_name: str,

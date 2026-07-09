@@ -81,9 +81,19 @@ def get_samples(db: Session = Depends(get_db)):
 @app.post("/api/interactions", response_model=InteractionResponse)
 def create_interaction(payload: InteractionCreate, db: Session = Depends(get_db)):
     try:
+        # Resolve HCP ID from name if ID is missing but name is present
+        hcp_id = payload.hcp_id
+        if not hcp_id and payload.hcp_name and payload.hcp_name.strip() and payload.hcp_name.lower() != "unknown hcp":
+            hcp = db.query(HCP).filter(HCP.name.ilike(f"%{payload.hcp_name.strip()}%")).first()
+            if not hcp:
+                hcp = HCP(name=payload.hcp_name.strip(), specialty="General")
+                db.add(hcp)
+                db.flush()
+            hcp_id = hcp.id
+
         # Create core interaction
         interaction = Interaction(
-            hcp_id=payload.hcp_id,
+            hcp_id=hcp_id,
             type=payload.type,
             date=payload.date,
             time=payload.time,

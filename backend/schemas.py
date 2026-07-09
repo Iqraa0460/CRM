@@ -39,6 +39,7 @@ class InteractionSampleResponse(BaseModel):
 
 class InteractionCreate(BaseModel):
     hcp_id: Optional[int] = None
+    hcp_name: Optional[str] = None
     type: str = "Meeting"
     date: str
     time: str

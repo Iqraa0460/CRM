@@ -96,6 +96,7 @@ export const submitFormInteraction = createAsyncThunk(
     try {
       const payload = {
         hcp_id: currentForm.hcpId,
+        hcp_name: currentForm.hcpName,
         type: currentForm.type,
         date: currentForm.date,
         time: currentForm.time,
